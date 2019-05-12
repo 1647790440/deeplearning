@@ -1,8 +1,8 @@
-目标：
+## 目标：
 
 实现在网页前端上传图片，后端接收完成人脸识别，再将识别数据和图片返回给前端。
 
-流程：
+## 流程：
 
 1.flask作为web框架，实现前后端的数据联通。
 
@@ -10,7 +10,7 @@
 
 2.后端将要实现的功能打包成一个函数接口供前端调用，以要识别的图片为输入，识别结果为输出。函数功能基于face_recognition库实现人脸识别。
 
-运行效果图：
+## 运行效果图：
 
 图片的上传：
 
@@ -22,7 +22,7 @@
 
 ![](https://github.com/1647790440/deeplearning/blob/master/flask-face/%E6%95%88%E6%9E%9C%E5%9B%BE/%E5%9B%BE%E7%89%87%E8%BF%94%E5%9B%9E2.jpg?raw=true)
 
-还可以改进的地方：
+## 还可以改进的地方：
 
 1.由于以前没做过html和jacascript，前端届面太简陋。
 
@@ -32,7 +32,7 @@
 
 4.还存在技术难题，成功率，速度，都有待改进。
 
-代码：
+## 代码：
 
 前端代码：
 
@@ -96,7 +96,7 @@ from flask import jsonify
 from werkzeug.utils import secure_filename
 from os import path
 import json
-import face
+import face   #打包的face函数
 
 app = Flask(__name__)
 
@@ -116,22 +116,23 @@ message = 'hello world'
 def upload():
     global message
     if request.method=='POST':
-        f = request.files["file"]
+        f = request.files["file"]  #读取上传图片，并交给识别函数
         base_path = path.abspath(path.dirname(__file__))
         upload_path = path.join(base_path,'static/uploads/')
         file_name = upload_path + secure_filename(f.filename)
         print(file_name)
         f.save(file_name)
         message = face.facerecognition(file_name)
-    return render_template('return.html')
+        #调用face.py文件中的facerecognition函数完成图片的识别
+    return render_template('return.html')#返回完成界面
 
 @app.route('/test_post',methods=['GET','POST'])
 def test_post():
     global message
     if request.method=='POST':
         message =json.dumps(message,ensure_ascii=False,indent = 4)
-        print(message)
-    return jsonify(message)
+        #print(message)
+    return jsonify(message)  #向前端返回数据结果
 
 if __name__ == '__main__':
     app.config['JSON_AS_ASCII'] = False
@@ -148,6 +149,7 @@ if __name__ == '__main__':
 face_recognition:
 
 ```python
+#face函数，在主文件中引入
 import numpy as np
 import face_recognition
 import json
@@ -162,19 +164,22 @@ dict = {}
 basedir = os.path.abspath(os.path.dirname(__file__))
 path = basedir + '/static/单独/'
  
-# 读取path文件夹下所有文件的名字
+#读取path文件夹下所有文件的名字
+#对'/static/单独/'目录下的所有图片进行读取
 imagelist = os.listdir(path)
 for imgname in imagelist:
     if(imgname.endswith(".jpg")):
-        names.append(imgname[:-4])
-        cur = face_recognition.load_image_file(path+imgname)
-        imgencode.append(face_recognition.face_encodings(cur)[0])
+        names.append(imgname[:-4])  #得到图片所对应的名字，去掉文件名后边的“.jpg”
+        cur = face_recognition.load_image_file(path+imgname) #读取图片
+        imgencode.append(face_recognition.face_encodings(cur)[0]) #编码，然后放进列表
 
-def facerecognition(inputpath):
+def facerecognition(inputpath):   #定义功能函数
     id = 1
     global outputnames,dict
-    unknown_image = face_recognition.load_image_file(inputpath) #上传的图片的路径
-    img = Image.open(inputpath)                                 #上传的图片的路径
+    unknown_image = face_recognition.load_image_file(inputpath) #inputpath上传的图片的路径
+    img = Image.open(inputpath)                                
+    
+    #人脸识别
     face_locations = face_recognition.face_locations(unknown_image)
     face_encodings = face_recognition.face_encodings(unknown_image, face_locations)
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
@@ -188,6 +193,7 @@ def facerecognition(inputpath):
         dict = {'id':id,'name':name}
         outputnames[id-1] = dict
         id = id + 1
+        #用PIL对人脸进行标识（由于cv2不支持中文，因此选用PIL，比较方便）
         draw = ImageDraw.Draw(img) 
         draw.line((left,top,left,bottom),'red')
         draw.line((right,top,right,bottom),'red')
@@ -195,9 +201,15 @@ def facerecognition(inputpath):
         draw.line((left,bottom,right,bottom),'red')
         font = ImageFont.truetype("simhei.ttf" ,int((right-left)/4), encoding="utf-8")
         draw.text((left,top-int((right-left)/4)),name, (255, 255, 255), font=font)
-    img.save(basedir + '/static/识别ed/' + '识别.jpg')
+        
+    img.save(basedir + '/static/识别ed/' + '识别.jpg') #保存识别之后的图片
     return outputnames
 ```
 
+## 参考：
 
+<https://blog.csdn.net/dcrmg/article/details/81987808>
 
+<https://blog.csdn.net/u010197393/article/details/83503202>
+
+<https://www.cnblogs.com/flyhigh1860/p/3896111.html>
