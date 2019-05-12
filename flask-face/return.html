@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<body>
+	<script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.js"></script>
+		<script>
+		var data;
+        $.ajax({
+			url: "test_post",
+			data:data,
+			type: "post",
+			dataType: "json",
+			success: function (data) {
+				document.write("<p>数据结果展示：</p>");
+				document.write(data);
+				document.write("<p>图片结果展示：</p>");
+				document.write("<img src='../static/识别ed/识别.jpg' width='720' height='480'>");
+			}
+        }) 
+		</script>
+
+<!--
+	<script>
+		function func(){
+			document.write("<p>数据结果展示：</p>");
+			document.write(data);
+			document.write("<p>图片结果展示：</p>");
+			document.write("<img src='../static/识别ed/识别.jpg' >");
+		}	
+	</script>
+	<p>图像识别成功！</p>
+	<button type="button" onclick="func()">点击这里显示数据</button>
+-->
+</body>
+ 
+</html>
