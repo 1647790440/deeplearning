@@ -136,24 +136,29 @@ def joinclass():
     if c == None:
         return 0       #没找到对应班级，则邀请码invitationcode错误，返回0
     else:
-        u = User.query.get(data['id'])
-        c = Class.query.filter_by(invitationcode=data['incitationcode']).all()
-        if u.joinedclasses != None:
-            u.joinedclasses = u.joinedclasses + ',' +string(c.id)   #可能需要引入一个中间变量，还未实验
+        if c.isallowtojoin == 1 :
+            u = User.query.get(data['id'])
+            c = Class.query.filter_by(invitationcode=data['incitationcode']).all()
+            if u.joinedclasses != None:
+                u.joinedclasses = u.joinedclasses + ',' +string(c.id)   #可能需要引入一个中间变量，还未实验
+            else:
+                u.joinedclasses = string(c.id)
+            db.session.commit()
+            #更新到数据库
+            c.numberofstudents = c.numberofstudents + 1
+            db.session.commit()
+            #更新到数据库
+            if c.idofstudents != None:
+                c.idofstudents = c.idofstudents + ',' + string(u.id)
+            else:
+                c.idofstudents = string(u.id)
+            db.session.commit()
+            #更新到数据库
+            return 1    #成功加入班级
         else:
-            u.joinedclasses = string(c.id)
-        db.session.commit()
-        #更新到数据库
-        c.numberofstudents = c.numberofstudents + 1
-        db.session.commit()
-        #更新到数据库
-        if c.idofstudents != None:
-            c.idofstudents = c.idofstudents + ',' + string(u.id)
-        else:
-            c.idofstudents = string(u.id)
-        db.session.commit()
-        #更新到数据库
-        return 1    #成功加入班级
+            return 0    #该班级不允许被加入
+    #返回0有两个可能 invitationcode错误或者 该班级不允许被加入
+    #返回1就是加入成功
     
 @qpp.router("/changeclassright",methods=['GET','POST']) #修改班级权限，是否可以加入
 def changeclassright():
