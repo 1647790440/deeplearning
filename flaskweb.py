@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
 from flask import request
 from flask import render_template
-import face
+import face   #识别函数文件   到最终放在一起   可能会是个更好的选择  速度不知道会不会更快
  
 app = Flask(__name__)
 wsgi_app = app.wsgi_app
@@ -92,10 +92,58 @@ def classmessage():
     
     data = request.get_data()
     c = Class.query.get(data['id'])
-    return message   #返回班级信息，格式还未完整，message还未确定
+    students = {}
+    dict = {}
+    id = 0
+    for i in c.idofstudents.split(str=','):
+        u = User.query.get(i)
+        dict = {'username':u.username}
+        students[id] = dict
+        id = id + 1
+    message = {'classname':c.classname,'numberofstudents':c.numberofstudents,'isallowtojoin':c.isallowtojoin,'students':students}
+    #message =json.dumps(message,ensure_ascii=False,indent = 4)
+    #print(message)
+    return jsonify(message)   #返回班级信息
     
+@app.router("/joinedclasslist",methods=['GET','POST'])
+def joinedclasslist():
     
+    #从前端获得 用户id
     
+    data = request.get_data()
+    u = User.query.get(data['id'])
+    id = 0
+    dict = {}
+    message = {}
+    for i in u.joinedclasses.split(str=','):
+        c = Class.query.get(i)
+        dict = {'classid':c.id,'classname':c.classname,'numberofstudents':c.numberofstudents}
+        message[id] = dict
+        id = id + 1
+    #message =json.dumps(message,ensure_ascii=False,indent = 4)
+    #print(message)
+    return jsonify(message)
+
+@app.router("/establishedclasslist",methods=['GET','POST'])
+def establishedclasslist():
+    
+    #从前端获得 用户id
+    
+    data = request.get_data()
+    u = User.query.get(data['id'])
+    id = 0
+    dict = {}
+    message = {}
+    for i in u.establishedclasses.split(str=','):
+        c = Class.query.get(i)
+        dict = {'classid':c.id,'classname':c.classname,'numberofstudents':c.numberofstudents}
+        message[id] = dict
+        id = id + 1
+    #message =json.dumps(message,ensure_ascii=False,indent = 4)
+    #print(message)
+    return jsonify(message)
+
+
 @app.router("/createclass",methods=['GET','POST'])  #创建班级
 def createclass():
     
@@ -128,7 +176,6 @@ def joinclass():
     
     #从前端获得   班级邀请码incitationcode，学生id
     
-    #这边还需要检测该班级是否允许加入 isallowtijoin == 1 ?  未完成
 
     data = request.get_data()
     c = None
